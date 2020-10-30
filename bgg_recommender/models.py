@@ -4,7 +4,7 @@ from django.db import models
 class SuggestedNumPlayersModel(models.Model):
     totalvotes = models.IntegerField()
     best_numvotes = models.IntegerField()
-    best_numplayers = models.IntegerField
+    best_numplayers = models.IntegerField(null=True)
     recommended_numvotes = models.IntegerField()
     recommended_numplayers = models.IntegerField()
     notrecommended_numvotes = models.IntegerField()
