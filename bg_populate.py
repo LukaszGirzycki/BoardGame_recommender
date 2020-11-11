@@ -4,7 +4,7 @@ import json
 import xml.etree.ElementTree as ET
 from bgg_recommender.models import SuggestedNumPlayersModel, SuggestedPlayerAgeModel, BoardGameCategoryModel, BoardGameMechanicModel, BoardGameFamilyModel, BoardGameExpansionModel, BoardGameIntegrationModel, BoardGameImplementationModel, BoardGameCompilationModel, BoardGameDesignerModel, BoardGameArtistModel, BoardGamePublisherModel, StatBoardGameModel, RankingBoardGameModel, BoardGameModel
 import time
-games = pd.read_csv('C:\\Users\\Joanna\\Desktop\\bgg_project\\errors2.csv')
+games = pd.read_csv('C:\\Users\\Joanna\\Desktop\\bgg_project\\errors.csv').reset_index().rename(columns={'index':'ID'})
 #games = pd.read_csv('C:\\Users\\Joanna\\Desktop\\bgg_project\\bgg_products.csv')
 
 error_dict = {}
@@ -54,8 +54,8 @@ for game in games['ID'].tolist():
 	if suggested_num_players_totalvotes != 0:
 		if suggested_num_players_poll.findall('results')[0].attrib['numplayers'] == '0+':
 			suggested_num_players_dict = {0: 'other'}
-			if minplayers > maxplayers:
-				suggested_num_players_dict = pd.DataFrame({int(result.attrib['numplayers']): {"best":int(result.find('.//result[@value="Best"]').attrib['numvotes']), "recommended":int(result.find('.//result[@value="Recommended"]').attrib['numvotes']), "not_recommended":int(result.find('.//result[@value="Not Recommended"]').attrib['numvotes'])} for result in suggested_num_players_poll.findall('results')}).T.loc[maxplayers:minplayers].T.to_dict()
+		elif minplayers > maxplayers:
+			suggested_num_players_dict = pd.DataFrame({int(result.attrib['numplayers']): {"best":int(result.find('.//result[@value="Best"]').attrib['numvotes']), "recommended":int(result.find('.//result[@value="Recommended"]').attrib['numvotes']), "not_recommended":int(result.find('.//result[@value="Not Recommended"]').attrib['numvotes'])} for result in suggested_num_players_poll.findall('results')}).T.loc[maxplayers:minplayers].T.to_dict()
 		else:
 			suggested_num_players_dict = pd.DataFrame({int(result.attrib['numplayers']): {"best":int(result.find('.//result[@value="Best"]').attrib['numvotes']), "recommended":int(result.find('.//result[@value="Recommended"]').attrib['numvotes']), "not_recommended":int(result.find('.//result[@value="Not Recommended"]').attrib['numvotes'])} for result in suggested_num_players_poll.findall('results')[:-1]}).T.loc[minplayers:maxplayers].T.to_dict()
 		
@@ -103,6 +103,9 @@ for game in games['ID'].tolist():
 	for rank_type in ranks:
 		print(rank_type)
 		print(g)
+		if rank_type['value'] == 'Not Ranked':
+			rank_type['value'] = 0
+			rank_type['bayesaverage'] = 0
 		rbgm = RankingBoardGameModel.objects.create(name=rank_type['name'], friendly_name=rank_type['friendlyname'], value=rank_type['value'], bayesaverage=rank_type['bayesaverage'], boardgame=g)
 		rbgm.save()
 		
@@ -165,4 +168,4 @@ for game in games['ID'].tolist():
 	#	error_dict[game] = str(exception)
 	time.sleep(n)
 
-pd.DataFrame([error_dict]).T.to_csv('C:\\Users\\Joanna\\Desktop\\bgg_project\\errors.csv')
+pd.DataFrame([error_dict]).T.to_csv('C:\\Users\\Joanna\\Desktop\\bgg_project\\errors2.csv')
